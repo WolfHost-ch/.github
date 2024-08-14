@@ -4,37 +4,67 @@ echo "| Starting server setup... |"
 echo "\\--------------------------/"
 echo ""
 
-echo "Update/grade packages..."
+# Check if user has sudo permissions
+echo "Getting SUDO permissions..."
+if [ $(id -u) -ne 0 ]; then
+    echo "Please run with sudo."
+    exit 1
+fi
+
 # Add alias to .bashrc
+echo "Adding aliases..."
 if ! grep -q "alias 'update'='sudo apt-get update;sudo apt-get upgrade -y'" ~/.bashrc; then
     echo "alias 'update'='sudo apt-get update;sudo apt-get upgrade -y'" >> ~/.bashrc
 fi
+source ~/.bashrc
 
-# Update package list
-sudo apt-get -qq update
 # Upgrade installed packages
-sudo apt-get -qq upgrade -y
+echo "Update/grade packages..."
+sudo apt-get update > /dev/null
+sudo apt-get upgrade -y > /dev/null
 
 # Install specified packages
-sudo apt-get -qq install -y nano git curl wget tree sl htop nmap net-tools iputils-ping apt-transport-https ca-certificates curl software-properties-common glusterfs-client
+PACKAGES=(
+    "nano"
+    "git"
+    "curl"
+    "wget"
+    "tree"
+    "sl"
+    "htop"
+    "nmap"
+    "net-tools"
+    "iputils-ping"
+    "apt-transport-https"
+    "ca-certificates"
+    "curl"
+    "software-properties-common"
+    "glusterfs-client"
+)
 
-echo "Installing Docker..."
+echo "Installing packages..."
+for PACKAGE in "${PACKAGES[@]}"; do
+    if ! dpkg -l | grep -q $PACKAGE; then
+        sudo apt-get install $PACKAGE -y > /dev/null
+    fi
+done
+
 # Install Docker
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-sudo apt-get -qq update
-sudo apt -qq install docker-ce
+echo "Installing Docker..."
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --batch --yes --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" |
+sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get update > /dev/null
+sudo apt-get install docker-ce -y > /dev/null
 
 # Add user to docker group
 sudo usermod -aG docker ${USER}
 
 # su - ${USER}
 
-# Source .bashrc to apply the alias
-source ~/.bashrc
 
-echo "Setting up hostname..."
 # add hostnames to /etc/hosts
+echo "Setting up hostname..."
 HOSTS=(
     "10.10.100.51 manager1"
     "10.10.100.52 manager2"
@@ -53,12 +83,13 @@ for HOST in "${HOSTS[@]}"; do
     fi
 done
 
-echo "Setting up GlusterFS..."
 # Add mount point for GlusterFS
+echo "Setting up GlusterFS..."
 sudo mkdir -p /mnt/dockerdata
+# TODO: verify /gv0
 sudo mount -t glusterfs storage1:/gv0 /mnt/dockerdata
-df -h /mnt/glusterfs
-echo "storage1:/gv0 /mnt/glusterfs glusterfs defaults,_netdev 0 0" | sudo tee -a /etc/fstab
+df -h /mnt/dockerdata
+echo "storage1:/gv0 /mnt/dockerdata glusterfs defaults,_netdev 0 0" | sudo tee -a /etc/fstab
 
 echo ""
 echo "/--------------------------\\"
