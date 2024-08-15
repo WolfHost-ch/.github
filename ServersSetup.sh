@@ -88,6 +88,10 @@ sudo mkdir -p /mnt/dockerdata
 sudo mount -t glusterfs storage1:/gv0 /mnt/dockerdata > /dev/null
 echo "storage1:/gv0 /mnt/dockerdata glusterfs defaults,_netdev 0 0" | sudo tee -a /etc/fstab > /dev/null
 
+# Change ownership and set permissions
+sudo chown ${USER}:${USER} /mnt/dockerdata
+sudo chmod 775 /mnt/dockerdata
+
 echo ""
 echo "/--------------------------\\"
 echo "|  Server setup complete!  |"
