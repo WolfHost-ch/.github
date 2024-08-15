@@ -77,7 +77,7 @@ HOSTS=(
 
 for HOST in "${HOSTS[@]}"; do
     if ! grep -q "$HOST" /etc/hosts; then
-        echo "$HOST" | sudo tee -a /etc/hosts
+        echo "$HOST" | sudo tee -a /etc/hosts > /dev/null
     fi
 done
 
@@ -86,7 +86,7 @@ echo "Setting up GlusterFS..."
 sudo mkdir -p /mnt/dockerdata
 # TODO: verify /gv0
 sudo mount -t glusterfs storage1:/gv0 /mnt/dockerdata > /dev/null
-echo "storage1:/gv0 /mnt/dockerdata glusterfs defaults,_netdev 0 0" | sudo tee -a /etc/fstab
+echo "storage1:/gv0 /mnt/dockerdata glusterfs defaults,_netdev 0 0" | sudo tee -a /etc/fstab > /dev/null
 
 echo ""
 echo "/--------------------------\\"
