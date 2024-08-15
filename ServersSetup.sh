@@ -7,8 +7,7 @@ echo ""
 # Check if user has sudo permissions
 echo "Getting SUDO permissions..."
 if [ $(id -u) -ne 0 ]; then
-    echo "Please run with sudo."
-    exit 1
+    sudo echo "" > /dev/null
 fi
 
 # Add alias to .bashrc
