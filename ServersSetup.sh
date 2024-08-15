@@ -85,7 +85,7 @@ done
 echo "Setting up GlusterFS..."
 sudo mkdir -p /mnt/dockerdata
 # TODO: verify /gv0
-sudo mount -t glusterfs storage1:/gv0 /mnt/dockerdata
+sudo mount -t glusterfs storage1:/gv0 /mnt/dockerdata > /dev/null
 echo "storage1:/gv0 /mnt/dockerdata glusterfs defaults,_netdev 0 0" | sudo tee -a /etc/fstab
 
 echo ""
